@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechStore</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #1e40af;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --success: #10b981;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f1f5f9;
+            color: var(--dark);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .cart-icon {
+            position: relative;
+            cursor: pointer;
+        }
+        .cart-count {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .products-container {
+		    display: grid;
+		    grid-template-columns: repeat(3, 1fr); /* 3 kutucuk yan yana */
+		    gap: 1rem; /* Kutucuklar arasındaki boşluğu ayarladık */
+		    padding: 4rem;
+		    justify-content: center;
+		    max-width: 1200px;
+		    margin: 0 auto;
+		}
+
+        .product-card {
+		    background: white;
+		    border-radius: 10px;
+		    overflow: hidden;
+		    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+		    transition: transform 0.3s ease;
+		    display: flex;
+		    flex-direction: column;
+		    height: 100%;
+		    max-width: 450px; /* Kutucuk genişliğini artırdık */
+		    min-width: 350px; /* Minimum genişlik */
+		}
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+        }
+        .product-image {
+            height: 200px;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: var(--dark);
+        }
+        .product-info {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        .product-title {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        .product-price {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.3rem;
+            margin: 0.5rem 0;
+        }
+        .add-to-cart {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+            margin-top: auto;
+        }
+        .add-to-cart:hover {
+            background: var(--secondary);
+        }
+        .cart-sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            transition: right 0.3s ease;
+            z-index: 1000;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        .cart-sidebar.active {
+            right: 0;
+        }
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .close-cart {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--dark);
+        }
+        .cart-items {
+            margin-bottom: 2rem;
+        }
+        .cart-item {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .cart-item-image {
+            width: 80px;
+            height: 80px;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 5px;
+        }
+        .cart-item-details {
+            flex-grow: 1;
+        }
+        .cart-item-title {
+            font-weight: 600;
+        }
+        .cart-item-price {
+            color: var(--primary);
+            font-weight: 700;
+            margin: 0.3rem 0;
+        }
+        .cart-item-total {
+            font-weight: 700;
+            color: var(--dark);
+        }
+        .cart-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .clear-cart-btn {
+		    flex: 1;
+		    padding: 1rem;
+		    background: #ef4444;
+		    color: white;
+		    border: none;
+		    border-radius: 5px;
+		    font-weight: 600;
+		    cursor: pointer;
+		    transition: background 0.3s;
+		    display: flex;
+		    align-items: center;
+		    justify-content: center;
+		    gap: 0.5rem;
+		}
+		
+		.clear-cart-btn:hover {
+            background: #dc2626;
+        }
+        
+        .cart-item-quantity {
+            width: 40px;
+            text-align: center;
+        }
+        .quantity-btn {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            border: none;
+            cursor: pointer;
+        }
+        .cart-total {
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-align: right;
+            margin-top: 1rem;
+        }
+        .checkout-btn {
+            flex: 2;
+            width: 100%;
+            padding: 1rem;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background 0.3s;
+        }
+        .checkout-btn:hover {
+            background: #0d9e6e;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        @media (max-width: 1200px) {
+    .products-container {
+        grid-template-columns: repeat(2, 1fr); /* Orta boy ekranlarda 2 sütun */
+        gap: 1.5rem;
+    }
+    .product-image {
+        height: 180px;
+        font-size: 2.5rem;
+    }
+}
+
+		@media (max-width: 768px) {
+		    .products-container {
+		        grid-template-columns: 1fr; /* Mobilde tek sütun */
+		        padding: 1rem;
+		    }
+		    .product-card {
+		        max-width: 350px; /* Mobilde maksimum genişlik */
+		        margin: 0 auto; /* Ortala */
+		    }
+		    .product-image {
+		        height: 150px;
+		        font-size: 2rem;
+		    }
+		    .cart-sidebar {
+		        width: 90%; /* Mobilde sidebar genişliği */
+		    }
+		}
+		
+		@media (max-width: 480px) {
+		    .product-image {
+		        height: 120px;
+		        font-size: 1.8rem;
+		    }
+		    .product-title {
+		        font-size: 1.1rem;
+		    }
+		    .product-price {
+		        font-size: 1.1rem;
+		    }
+		    .add-to-cart {
+		        padding: 0.6rem;
+		        font-size: 0.9rem;
+		    }
+		}
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">TechStore</div>
+        <div class="cart-icon" onclick="toggleCart()">
+            <i class="fas fa-shopping-cart fa-lg"></i>
+            <span class="cart-count">0</span>
+        </div>
+    </header>
+    
+    <div class="products-container">
+        <!-- 1. Satır -->
+        <div class="product-card">
+            <div class="product-image">
+                <i class="fas fa-mobile-alt"></i>
+            </div>
+            <div class="product-info">
+                <h3 class="product-title">Akıllı Telefon</h3>
+                <div class="product-price">34.999 TL</div>
+                <button class="add-to-cart" onclick="addToCart('Akıllı Telefon', 34999)">
+                    Sepete Ekle
+                </button>
+            </div>
+        </div>
+        
+        <div class="product-card">
+            <div class="product-image">
+                <i class="fas fa-headphones"></i>
+            </div>
+            <div class="product-info">
+                <h3 class="product-title">Kablosuz Kulaklık</h3>
+                <div class="product-price">7.499 TL</div>
+                <button class="add-to-cart" onclick="addToCart('Kablosuz Kulaklık', 7499)">
+                    Sepete Ekle
+                </button>
+            </div>
+        </div>
+        
+        <div class="product-card">
+            <div class="product-image">
+                <i class="fas fa-laptop"></i>
+            </div>
+            <div class="product-info">
+                <h3 class="product-title">Laptop</h3>
+                <div class="product-price">42.999 TL</div>
+                <button class="add-to-cart" onclick="addToCart('Laptop', 42999)">
+                    Sepete Ekle
+                </button>
+            </div>
+        </div>
+        
+        <!-- 2. Satır -->
+        <div class="product-card">
+            <div class="product-image">
+                <i class="fas fa-tablet-alt"></i>
+            </div>
+            <div class="product-info">
+                <h3 class="product-title">Tablet</h3>
+                <div class="product-price">15.999 TL</div>
+                <button class="add-to-cart" onclick="addToCart('Tablet', 15999)">
+                    Sepete Ekle
+                </button>
+            </div>
+        </div>
+        
+        <div class="product-card">
+            <div class="product-image">
+                <i class="fas fa-tv"></i>
+            </div>
+            <div class="product-info">
+                <h3 class="product-title">Televizyon</h3>
+                <div class="product-price">24.999 TL</div>
+                <button class="add-to-cart" onclick="addToCart('Televizyon', 24999)">
+                    Sepete Ekle
+                </button>
+            </div>
+        </div>
+        
+        <div class="product-card">
+            <div class="product-image">
+                <i class="fas fa-gamepad"></i>
+            </div>
+            <div class="product-info">
+                <h3 class="product-title">PlayStation</h3>
+                <div class="product-price">14.999 TL</div>
+                <button class="add-to-cart" onclick="addToCart('PlayStation', 14999)">
+                    Sepete Ekle
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="cart-sidebar">
+        <div class="cart-header">
+            <h2>Alışveriş Sepeti</h2>
+            <button class="close-cart" onclick="toggleCart()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="cart-items" id="cartItems">
+            <p style="text-align: center;">Sepetiniz boş</p>
+        </div>
+        
+        <div class="cart-total">
+            Toplam: <span id="cartTotal">0</span> TL
+        </div>
+        
+        <button class="clear-cart-btn" onclick="clearCart()">
+            Sepeti Temizle <i class="fas fa-trash"></i>
+        </button>
+        
+        <button class="checkout-btn">
+            Ödemeye Geç <i class="fas fa-arrow-right"></i>
+        </button>
+    </div>
+    
+    <div class="overlay" onclick="toggleCart()"></div>
+    
+    <script>
+        let cart = JSON.parse(localStorage.getItem('cart')) || {};
+        
+        function toggleCart() {
+            document.querySelector('.cart-sidebar').classList.toggle('active');
+            document.querySelector('.overlay').classList.toggle('active');
+        }
+        
+        function addToCart(name, price) {
+            setTimeout(() => {
+                if (cart[name]) {
+                    cart[name].quantity++;
+                } else {
+                    cart[name] = { price: price, quantity: 1 };
+                }
+                
+                updateCartUI();
+                saveCartToStorage();
+                
+                const btn = event.target;
+                btn.innerHTML = '<i class="fas fa-check"></i> Eklendi';
+                btn.style.backgroundColor = '#10b981';
+                setTimeout(() => {
+                    btn.innerHTML = 'Sepete Ekle';
+                    btn.style.backgroundColor = '';
+                }, 2000);
+            }, 300);
+        }
+        
+        function updateCartUI() {
+            const totalItems = Object.values(cart).reduce((sum, item) => sum + item.quantity, 0);
+            document.querySelector('.cart-count').textContent = totalItems;
+            
+            const cartItemsEl = document.getElementById('cartItems');
+            if (totalItems === 0) {
+                cartItemsEl.innerHTML = '<p style="text-align: center;">Sepetiniz boş</p>';
+                document.getElementById('cartTotal').textContent = '0';
+                return;
+            }
+            
+            let html = '';
+            let total = 0;
+            
+            for (const [name, item] of Object.entries(cart)) {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                
+                let iconClass = 'fas fa-box-open';
+                if (name.includes('Telefon')) iconClass = 'fas fa-mobile-alt';
+                else if (name.includes('Kulaklık')) iconClass = 'fas fa-headphones';
+                else if (name.includes('Laptop')) iconClass = 'fas fa-laptop';
+                else if (name.includes('Tablet')) iconClass = 'fas fa-tablet-alt';
+                else if (name.includes('Televizyon')) iconClass = 'fas fa-tv';
+                else if (name.includes('PlayStation')) iconClass = 'fas fa-gamepad';
+                
+                html += `
+                    <div class="cart-item">
+                        <div class="cart-item-image">
+                            <i class="${iconClass}"></i>
+                        </div>
+                        <div class="cart-item-details">
+                            <div class="cart-item-title">${name}</div>
+                            <div class="cart-item-price">${item.price.toLocaleString()} TL (birim)</div>
+                            <div class="cart-item-total">${itemTotal.toLocaleString()} TL (${item.quantity} adet)</div>
+                            <div class="cart-item-actions">
+                                <button class="quantity-btn" onclick="updateQuantity('${name}', -1)">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="text" class="cart-item-quantity" value="${item.quantity}" readonly>
+                                <button class="quantity-btn" onclick="updateQuantity('${name}', 1)">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            cartItemsEl.innerHTML = html;
+            document.getElementById('cartTotal').textContent = total.toLocaleString();
+        }
+        
+        function updateQuantity(name, change) {
+            cart[name].quantity += change;
+            
+            if (cart[name].quantity <= 0) {
+                delete cart[name];
+            }
+            
+            updateCartUI();
+            saveCartToStorage();
+        }
+        
+        function saveCartToStorage() {
+            localStorage.setItem('cart', JSON.stringify(cart));
+        }
+        
+       
+        function clearCart() {
+            cart = {}; 
+            localStorage.removeItem('cart'); 
+            updateCartUI(); 
+            
+            
+            document.getElementById('cartItems').innerHTML = '<p style="text-align: center;">Sepetiniz boş</p>';
+            document.getElementById('cartTotal').textContent = '0';
+            document.querySelector('.cart-count').textContent = '0';
+            
+            console.log('Sepet temizlendi:', cart); 
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCartUI();
+        });
+        
+    </script>
+</body>
+</html>
